@@ -15,12 +15,27 @@ from django.views.generic import CreateView, ListView
 from transactions.constants import DEPOSIT, WITHDRAWAL,LOAN, LOAN_PAID
 from datetime import datetime
 from django.db.models import Sum
+from django.contrib.auth.views import PasswordChangeView
 from transactions.forms import (
     DepositForm,
     WithdrawForm,
     LoanRequestForm,
 )
 from transactions.models import Transaction
+from django.core.mail import EmailMultiAlternatives
+from django.template.loader import render_to_string
+
+
+def send_transaction_email(user,amount,subject,template):
+        message = render_to_string(template,{
+            'user': user,
+            'amount': amount,
+        })
+        send_email = EmailMultiAlternatives(subject, '',to = [user.email])
+        send_email.attach_alternative(message,"text/html")
+        send_email.send()
+
+
 
 class TransactionCreateMixin(LoginRequiredMixin, CreateView):
     template_name = 'transactions/transactin_report.html'
@@ -205,6 +220,8 @@ class transfersView(CreateView):
             user_account = UserBankAccount.objects.get(account_no=form.cleaned_data.get('Account_NO'))
             balance = user_account.balance
             if balance > form.cleaned_data.get('amount'):
+                send_transaction_email(self.request.user,form.cleaned_data.get('amount'),"You are Transfer money",'transactions/send_mail.html')
+                send_transaction_email(user_account.user,form.cleaned_data.get('amount'),"you are received money",'transactions/send_mail.html')
                 messages.error(self.request,f'Your money transfer has already been successfull')
                 user_account.balance += form.cleaned_data.get('amount')
                 self.request.user.account.balance -= form.cleaned_data.get('amount')
@@ -218,3 +235,18 @@ class transfersView(CreateView):
              messages.warning(self.request,f'Not found Account ')
         return super().form_valid(form)
     success_url = reverse_lazy(temp)
+
+class ChangePassword(PasswordChangeView):
+    template_name = 'transactions/transfer.html'
+    success_url = reverse_lazy('profile')
+
+    def form_valid(self, form):
+
+        message = render_to_string('transactions/password_change.html',{
+            'user': self.request.user
+        })
+        send_email = EmailMultiAlternatives("password change successfully", '',to = [self.request.user.email])
+        send_email.attach_alternative(message,"text/html")
+        send_email.send()
+
+        return super().form_valid(form)

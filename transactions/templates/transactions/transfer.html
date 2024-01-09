@@ -11,7 +11,12 @@
             {% csrf_token %}
             {% load crispy_forms_tags %}
             <div class="mb-4">
-                {{form | crispy}}
+              <!--  {{form | crispy}} -->
+                {% for fm in form  %}
+                {{fm.label_tag}}
+                {{fm}}
+                
+                {% endfor %}
             </div>
             {% if form.amount.errors %} {% for error in form.amount.errors %}
             <p class="text-red-600 text-sm italic pb-2">{{ error }}</p>

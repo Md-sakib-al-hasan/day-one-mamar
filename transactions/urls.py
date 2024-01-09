@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import DepositMoneyView, WithdrawMoneyView, TransactionReportView,LoanRequestView,LoanListView,PayLoanView,transfersView
+from .views import DepositMoneyView, WithdrawMoneyView, TransactionReportView,LoanRequestView,LoanListView,PayLoanView,transfersView,ChangePassword
 
 
 urlpatterns = [
@@ -10,4 +10,5 @@ urlpatterns = [
     path("loans/", LoanListView.as_view(), name="loan_list"),
     path("loans/<int:loan_id>/", PayLoanView.as_view(), name="pay"),
     path("transfer/",transfersView.as_view(), name="transfer"),
+    path("changepass/",ChangePassword.as_view(), name="changepass"),
 ]
